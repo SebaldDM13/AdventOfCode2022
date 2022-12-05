@@ -1,11 +1,13 @@
-﻿namespace AdventOfCode2022;
+﻿using System.ComponentModel;
+
+namespace AdventOfCode2022;
 
 public static class Extensions
 {
     public static IEnumerable<IEnumerable<string>> Partitions(this IEnumerable<string> lines)
     {
         IEnumerator<string> enumerator = lines.GetEnumerator();
-        while(enumerator.MoveNext())
+        while (enumerator.MoveNext())
         {
             yield return NextPartition(enumerator);
         }
@@ -39,7 +41,7 @@ public static class Extensions
         IEnumerator<string> enumerator = strings.GetEnumerator();
         enumerator.MoveNext();
         IEnumerable<char> common = enumerator.Current;
-        while(enumerator.MoveNext())
+        while (enumerator.MoveNext())
         {
             common = common.Intersect(enumerator.Current);
         }
@@ -49,7 +51,7 @@ public static class Extensions
 
     public static IEnumerable<IEnumerable<char>> CommonCharacters(this IEnumerable<IEnumerable<string>> partitions)
     {
-        foreach(IEnumerable<string> strings in partitions)
+        foreach (IEnumerable<string> strings in partitions)
         {
             yield return strings.CommonCharacters();
         }
@@ -57,7 +59,7 @@ public static class Extensions
 
     public static IEnumerable<T> Singles<T>(this IEnumerable<IEnumerable<T>> partitions)
     {
-        foreach(IEnumerable<T> p in partitions)
+        foreach (IEnumerable<T> p in partitions)
         {
             yield return p.Single();
         }
@@ -71,7 +73,7 @@ public static class Extensions
 
     public static IEnumerable<IEnumerable<string>> Halves(this IEnumerable<string> lines)
     {
-        foreach(string line in lines)
+        foreach (string line in lines)
         {
             yield return line.Halves();
         }
@@ -89,6 +91,14 @@ public static class Extensions
         foreach (char c in chars)
         {
             yield return c.PriorityValue();
+        }
+    }
+
+    public static IEnumerable<string[]> Splits(this IEnumerable<string> strings, char separator)
+    {
+        foreach (string s in strings)
+        {
+            yield return s.Split(separator);
         }
     }
 }
