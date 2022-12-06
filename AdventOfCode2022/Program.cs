@@ -56,3 +56,9 @@ Console.WriteLine();
 Console.WriteLine("Part 2:");
 Console.WriteLine(table2.Print());
 Console.WriteLine();
+
+Console.WriteLine("Day 06:");
+string text = File.ReadAllText(Path.Combine(path, "Day06.txt"));
+Console.WriteLine("Processed characters for marker length 4: " + (text.NonRepeatingChainIndex(4) + 4));
+Console.WriteLine("Processed characters for marker length 14: " + (text.NonRepeatingChainIndex(14) + 14));
+Console.WriteLine();

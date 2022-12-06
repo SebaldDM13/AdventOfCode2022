@@ -109,4 +109,15 @@ public static class Extensions
     {
         return string.Join(Environment.NewLine, lines.Select(s => new string(s.ToArray())));
     }
+
+    public static int NonRepeatingChainIndex(this string items, int chain)
+    {
+        for (int i = 0; i < items.Length - chain; i++)
+        {
+            if (items[i..(i + chain)].Distinct().Count() == chain)
+                return i;
+        }
+
+        return -1;
+    }
 }
