@@ -7,8 +7,11 @@ public static class Extensions
         int sum = 0;
         foreach (string s in lines)
         {
-            if(s.Length == 0)
+            if (s.Length == 0)
+            {
                 yield return sum;
+                sum = 0;
+            }
             else
                 sum += int.Parse(s);
         }
@@ -30,18 +33,12 @@ public static class Extensions
 
     public static IEnumerable<IEnumerable<char>> CommonCharacters(this IEnumerable<IEnumerable<string>> partitions)
     {
-        foreach (IEnumerable<string> strings in partitions)
-        {
-            yield return strings.CommonCharacters();
-        }
+        return partitions.Select(p => p.CommonCharacters());
     }
 
     public static IEnumerable<T> Singles<T>(this IEnumerable<IEnumerable<T>> partitions)
     {
-        foreach (IEnumerable<T> p in partitions)
-        {
-            yield return p.Single();
-        }
+        return partitions.Select(p => p.Single());
     }
 
     public static IEnumerable<string> Halves(this string s)
@@ -52,10 +49,7 @@ public static class Extensions
 
     public static IEnumerable<IEnumerable<string>> Halves(this IEnumerable<string> lines)
     {
-        foreach (string line in lines)
-        {
-            yield return line.Halves();
-        }
+        return lines.Select(l => l.Halves());
     }
 
     public static int PriorityValue(this char c) => c switch
@@ -67,18 +61,12 @@ public static class Extensions
 
     public static IEnumerable<int> PriorityValues(this IEnumerable<char> chars)
     {
-        foreach (char c in chars)
-        {
-            yield return c.PriorityValue();
-        }
+        return chars.Select(c => PriorityValue(c));
     }
 
     public static IEnumerable<string[]> Splits(this IEnumerable<string> strings, char separator)
     {
-        foreach (string s in strings)
-        {
-            yield return s.Split(separator);
-        }
+        return strings.Select(s => s.Split(separator));
     }
 
     public static int EmptyLineIndex(this string[] lines)
@@ -92,32 +80,33 @@ public static class Extensions
         return -1;
     }
 
-    public static IEnumerable<int> NonSpaceIndicies(this string s)
+    public static List<List<char>> Pivot(this string[] lines)
     {
-        for(int i = 0; i < s.Length; i++)
+        List<List<char>> table = new();
+        for(int i = 0; i < lines[0].Length; i++)
         {
-            if (s[i] != ' ')
-                yield return i;
+            List<char> row = new();
+            for (int j = lines.Length - 1; j >= 0; j--)
+            {
+                row.Add(lines[j][i]);
+            }
+            table.Add(row);
         }
+        return table;
     }
 
-    public static IEnumerable<IEnumerable<char>> Columns(this IEnumerable<string> lines, IEnumerable<int> indicies)
+    public static List<List<char>> Copy(this List<List<char>> table)
     {
-        return indicies.Select(i => lines.Column(i));
+        List<List<char>> copy = new();
+        foreach(List<char> row in table)
+        {
+            copy.Add(new(row));
+        }
+        return copy;
     }
 
-    public static IEnumerable<char> Column(this IEnumerable<string> lines, int index)
+    public static string Print(this IEnumerable<IEnumerable<char>> lines)
     {
-        return lines.Select(s => index < s.Length ? s[index] : ' ');
-    }
-
-    public static IEnumerable<Stack<char>> ToStacks(this IEnumerable<IEnumerable<char>> chars)
-    {
-        return chars.Select(ToStack);
-    }
-
-    public static Stack<char> ToStack(this IEnumerable<char> chars)
-    {
-        return new Stack<char>(chars.TakeWhile(c => c != ' '));
+        return string.Join(Environment.NewLine, lines.Select(s => new string(s.ToArray())));
     }
 }

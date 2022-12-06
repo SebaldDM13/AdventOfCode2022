@@ -33,28 +33,26 @@ Console.WriteLine("Count of overlapping range pairs: " + ranges.Count(r => r[0].
 Console.WriteLine();
 
 Console.WriteLine("Day 05:");
-Console.WriteLine();
 lines = File.ReadAllLines(Path.Combine(path, "Day05.txt"));
-RunCargoSimulation("Crate Mover 9000 results:", new CrateMover9000(), lines);
-RunCargoSimulation("Crate Mover 9001 results:", new CrateMover9001(), lines);
-
-static void RunCargoSimulation(string description, CrateMover mover, string[] lines)
+int index = lines.EmptyLineIndex();
+List<List<char>> table1 = lines[..index].Pivot();
+table1.RemoveAll(r => r[0] == ' ');
+table1.ForEach(r => r.RemoveAll(c => c == ' '));
+List<List<char>> table2 = table1.Copy();
+foreach (string instruction in lines[(index + 1)..])
 {
-    Console.WriteLine(description);
-
-    int index = lines.EmptyLineIndex();
-    IEnumerable<int> nonSpaceIndicies = lines[index - 1].NonSpaceIndicies();
-    Stack<char>[] stacks = lines[..(index - 1)].Reverse().Columns(nonSpaceIndicies).ToStacks().ToArray();
-
-    foreach (string instruction in lines[(index + 1)..])
-    {
-        mover.Move(stacks, instruction);
-    }
-
-    for (int i = 0; i < stacks.Length; i++)
-    {
-        Console.WriteLine($"{i + 1}: {new string(stacks[i].Reverse().ToArray())}");
-    }
-    Console.WriteLine("Top crates: " + new string(stacks.Select(s => s.Peek()).ToArray()));
-    Console.WriteLine();
+    string[] tokens = instruction.Split(' ');
+    int quantity = int.Parse(tokens[1]);
+    int source = int.Parse(tokens[3]) - 1;
+    int destination = int.Parse(tokens[5]) - 1;
+    table1[destination].AddRange(table1[source].Skip(table1[source].Count - quantity).Reverse());
+    table2[destination].AddRange(table2[source].Skip(table2[source].Count - quantity));
+    table1[source].RemoveRange(table1[source].Count - quantity, quantity);
+    table2[source].RemoveRange(table2[source].Count - quantity, quantity);
 }
+Console.WriteLine("Part 1:");
+Console.WriteLine(table1.Print());
+Console.WriteLine();
+Console.WriteLine("Part 2:");
+Console.WriteLine(table2.Print());
+Console.WriteLine();
