@@ -62,3 +62,66 @@ string text = File.ReadAllText(Path.Combine(path, "Day06.txt"));
 Console.WriteLine("Processed characters for marker length 4: " + (text.NonRepeatingChainIndex(4) + 4));
 Console.WriteLine("Processed characters for marker length 14: " + (text.NonRepeatingChainIndex(14) + 14));
 Console.WriteLine();
+
+Console.WriteLine("Day 07:");
+lines = File.ReadAllLines(Path.Combine(path, "Day07.txt"));
+DirectoryNode current = new DirectoryNode("/");
+List<DirectoryNode> allDirectories = new() { current };
+bool isInListing = false;
+
+foreach (string line in lines)
+{
+    string[] tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    if (tokens[0] == "$")
+    {
+        isInListing = false;
+        if (tokens[1] == "ls")
+        {
+            isInListing = true;
+        }
+        if (tokens[1] == "cd")
+        {
+            if (tokens[2] == "/")
+            {
+                current = allDirectories[0];
+            }
+            else if (tokens[2] == "..")
+            {
+                if (current.Parent is not null)
+                {
+                    current = current.Parent;
+                }
+            }
+            else
+            {
+                current = current.SubDirectory(tokens[2]);
+            }
+        }
+    }
+    else if (isInListing)
+    {
+        if (tokens[0] == "dir")
+        {
+            DirectoryNode subDirectory = new DirectoryNode(tokens[1]);
+            current.Add(subDirectory);
+            allDirectories.Add(subDirectory);
+        }
+        else
+        {
+            current.Add(new FileNode(tokens[1], int.Parse(tokens[0])));
+        }
+    }
+}
+
+Console.WriteLine("Sum of directory sizes of at most 100000: " + allDirectories.Where(d => d.Size <= 100000).Sum(d => d.Size));
+int used = allDirectories[0].Size;
+int totalSpace = 70000000;
+int unused = totalSpace - used;
+int requiredSpace = 30000000;
+int minimumSpaceToFreeUp = requiredSpace - unused;
+Console.WriteLine("Used space: " + used);
+Console.WriteLine("Unused space: " + unused);
+Console.WriteLine("Minimum space to free up: " + minimumSpaceToFreeUp);
+int smallestDirectorySizeOfMinimumSpace = allDirectories.Select(d => d.Size).Where(i => i >= minimumSpaceToFreeUp).Min();
+Console.WriteLine("Smallest directory size of at least the minimum space needed: " + smallestDirectorySizeOfMinimumSpace);
+Console.WriteLine("Directory name(s): " + string.Join(", ", allDirectories.Where(d => d.Size == smallestDirectorySizeOfMinimumSpace).Select(d => d.Name)));

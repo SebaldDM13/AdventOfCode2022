@@ -98,10 +98,7 @@ public static class Extensions
     public static List<List<char>> Copy(this List<List<char>> table)
     {
         List<List<char>> copy = new();
-        foreach(List<char> row in table)
-        {
-            copy.Add(new(row));
-        }
+        table.ForEach(row => copy.Add(new(row)));
         return copy;
     }
 
