@@ -121,14 +121,19 @@ public static class ExtensionMethods
     public static int[,] ToGrid(this string[] lines)
     {
         int[,] grid = new int[lines.Length, lines[0].Length];
-        for (int row = 0; row < grid.GetLength(0); row++)
+        for (int y = 0; y < grid.GetLength(0); y++)
         {
-            for (int column = 0; column < grid.GetLength(1); column++)
+            for (int x = 0; x < grid.GetLength(1); x++)
             {
-                grid[row, column] = lines[row][column] - '0';
+                grid[y, x] = lines[y][x] - '0';
             }
         }
 
         return grid;
+    }
+
+    public static bool IsWithin(this Vector2Int v, int[,] grid)
+    {
+        return 0 <= v.Y && v.Y < grid.GetLength(0) && 0 <= v.X && v.X < grid.GetLength(1);
     }
 }

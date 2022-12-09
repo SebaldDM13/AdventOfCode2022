@@ -86,21 +86,21 @@ lines = File.ReadAllLines(Path.Combine(path, "Day08.txt"));
 int[,] heightMap = lines.ToGrid();
 int visibleTreeCount = 0;
 int maxScenicScore = 0;
-(int, int)[] directions = new[] { (0, 1), (0, -1), (-1, 0), (1, 0) };
-for (int row = 0; row < heightMap.GetLength(0); row++)
+Vector2Int[] directions = new[] { Vector2Int.Up, Vector2Int.Down, Vector2Int.Left, Vector2Int.Right };
+for (Vector2Int location = new(); location.Y < heightMap.GetLength(1); location.Y++)
 {
-    for (int column = 0; column < heightMap.GetLength(1); column++)
+    for (location.X = 0; location.X < heightMap.GetLength(0); location.X++)
     {
         bool visibility = false;
         int scenicScore = 1;
-        foreach ((int x, int y) in directions)
+        foreach (Vector2Int direction in directions)
         {
             bool directionVisibility = true;
             int directionScenicScore = 0;
-            for((int row2, int column2) = (row + y, column + x); row2 >= 0 && row2 < heightMap.GetLength(0) && column2 >= 0 && column2 < heightMap.GetLength(1); row2 += y, column2 += x)
+            for (Vector2Int scan = location + direction; scan.IsWithin(heightMap); scan += direction)
             {
                 directionScenicScore++;
-                if (heightMap[row, column] <= heightMap[row2, column2])
+                if (heightMap[scan.Y, scan.X] >= heightMap[location.Y, location.X])
                 {
                     directionVisibility = false;
                     break;
@@ -117,4 +117,34 @@ for (int row = 0; row < heightMap.GetLength(0); row++)
 
 Console.WriteLine("Visible tree count: " + visibleTreeCount);
 Console.WriteLine("Highest possible scenic score: " + maxScenicScore);
+Console.WriteLine();
+
+Console.WriteLine("Day 09:");
+lines = File.ReadAllLines(Path.Combine(path, "Day09.txt"));
+Dictionary<string, Vector2Int> stringToDirection = new() { { "U", Vector2Int.Up }, { "D", Vector2Int.Down }, { "L", Vector2Int.Left }, { "R", Vector2Int.Right } };
+Vector2Int[] rope = new Vector2Int[10];
+HashSet<Vector2Int>[] knotHistories = rope.Select(knot => new HashSet<Vector2Int>() { knot }).ToArray();
+foreach (string line in lines)
+{
+    string[] tokens = line.Split(' ');
+    int moves = int.Parse(tokens[1]);
+    for (int move = 0; move < moves; move++)
+    {
+        rope[0] += stringToDirection[tokens[0]];
+        knotHistories[0].Add(rope[0]);
+        for (int knot = 1; knot < rope.Length; knot++)
+        {
+            Vector2Int difference = rope[knot - 1] - rope[knot];
+            if (difference.Abs().Max() == 2)
+            {
+                rope[knot] += difference.Sign();
+            }
+
+            knotHistories[knot].Add(rope[knot]);
+        }
+    }
+}
+
+Console.WriteLine("Positions length 1 rope tail visited: " + knotHistories[1].Count);
+Console.WriteLine("Positions length 9 rope tail visited: " + knotHistories[9].Count);
 Console.WriteLine();
