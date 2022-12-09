@@ -13,10 +13,23 @@ Console.WriteLine();
 
 Console.WriteLine("Day 02:");
 lines = File.ReadAllLines(Path.Combine(path, "Day02.txt"));
-Console.WriteLine("Part 1 score (switch implementation): " + lines.Sum(RockPaperScissorsSwitchImplementation.ScoreOfOpponentMoveAndPlayerMove));
-Console.WriteLine("Part 2 score (switch implementation): " + lines.Sum(RockPaperScissorsSwitchImplementation.ScoreOfOpponentMoveAndResult));
-Console.WriteLine("Part 1 score (equation implementation): " + lines.Sum(RockPaperScissorsEquationImplementation.ScoreOfOpponentMoveAndPlayerMove));
-Console.WriteLine("Part 2 score (equation implementation): " + lines.Sum(RockPaperScissorsEquationImplementation.ScoreOfOpponentMoveAndResult));
+Dictionary<char, int> charToRockPaperScissors123 = new() { { 'A', 1 }, { 'B', 2 }, { 'C', 3 }, { 'X', 1 }, { 'Y', 2 }, { 'Z', 3 } };
+Dictionary<char, int> charToLoseTieWin012 = new() { { 'X', 0 }, { 'Y', 1 }, { 'Z', 2 } };
+Func<int, int, int> result = (yourMove, opponentMove) => (yourMove - opponentMove + 4) % 3;
+Func<int, int, int> yourMove = (opponentMove, result) => (opponentMove + result + 1) % 3 + 1;
+int score1 = 0;
+int score2 = 0;
+foreach (string line in lines)
+{
+    int opponentMove = charToRockPaperScissors123[line[0]];
+    int yourPart1Move = charToRockPaperScissors123[line[2]];
+    int part2Result = charToLoseTieWin012[line[2]];
+    score1 += yourPart1Move + 3 * result(yourPart1Move, opponentMove);
+    score2 += yourMove(opponentMove, part2Result) + 3 * part2Result;
+}
+
+Console.WriteLine("Part 1 score: " + score1);
+Console.WriteLine("Part 2 score: " + score2);
 Console.WriteLine();
 
 Console.WriteLine("Day 03:");
