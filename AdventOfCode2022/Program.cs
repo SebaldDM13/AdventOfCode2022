@@ -15,7 +15,7 @@ Console.WriteLine("Day 02:");
 lines = File.ReadAllLines(Path.Combine(path, "Day02.txt"));
 Dictionary<char, int> charToRockPaperScissors123 = new() { { 'A', 1 }, { 'B', 2 }, { 'C', 3 }, { 'X', 1 }, { 'Y', 2 }, { 'Z', 3 } };
 Dictionary<char, int> charToLoseTieWin012 = new() { { 'X', 0 }, { 'Y', 1 }, { 'Z', 2 } };
-Func<int, int, int> result = (yourMove, opponentMove) => (yourMove - opponentMove + 4) % 3;
+Func<int, int, int> rockPaperScissorsResult = (yourMove, opponentMove) => (yourMove - opponentMove + 4) % 3;
 Func<int, int, int> yourMove = (opponentMove, result) => (opponentMove + result + 1) % 3 + 1;
 int score1 = 0;
 int score2 = 0;
@@ -24,7 +24,7 @@ foreach (string line in lines)
     int opponentMove = charToRockPaperScissors123[line[0]];
     int yourPart1Move = charToRockPaperScissors123[line[2]];
     int part2Result = charToLoseTieWin012[line[2]];
-    score1 += yourPart1Move + 3 * result(yourPart1Move, opponentMove);
+    score1 += yourPart1Move + 3 * rockPaperScissorsResult(yourPart1Move, opponentMove);
     score2 += yourMove(opponentMove, part2Result) + 3 * part2Result;
 }
 
@@ -78,20 +78,19 @@ Console.WriteLine();
 
 Console.WriteLine("Day 07:");
 lines = File.ReadAllLines(Path.Combine(path, "Day07.txt"));
-FileSystem fileSystem = new();
-fileSystem.Initialize(lines);
-Console.WriteLine("Sum of directory sizes of at most 100000: " + fileSystem.AllDirectories.Where(d => d.Size <= 100000).Sum(d => d.Size));
-int used = fileSystem.AllDirectories[0].Size;
+FileSystem fileSystem = new(lines);
+Console.WriteLine("Sum of directory sizes of at most 100000: " + fileSystem.DirectoryTraversal().Where(d => d.Size <= 100000).Sum(d => d.Size));
+int used = fileSystem.Root.Size;
 int totalSpace = 70000000;
 int unused = totalSpace - used;
 int requiredSpace = 30000000;
 int minimumSpaceToFreeUp = requiredSpace - unused;
-int smallestDirectorySizeOfMinimumSpace = fileSystem.AllDirectories.Select(d => d.Size).Where(i => i >= minimumSpaceToFreeUp).Min();
+int smallestDirectorySizeOfMinimumSpace = fileSystem.DirectoryTraversal().Select(d => d.Size).Where(i => i >= minimumSpaceToFreeUp).Min();
 Console.WriteLine("Used space: " + used);
 Console.WriteLine("Unused space: " + unused);
 Console.WriteLine("Minimum space to free up: " + minimumSpaceToFreeUp);
 Console.WriteLine("Smallest directory size of at least the minimum space needed: " + smallestDirectorySizeOfMinimumSpace);
-Console.WriteLine("Directory name(s): " + string.Join(", ", fileSystem.AllDirectories.Where(d => d.Size == smallestDirectorySizeOfMinimumSpace).Select(d => d.Name)));
+Console.WriteLine("Directory name(s): " + string.Join(", ", fileSystem.DirectoryTraversal().Where(d => d.Size == smallestDirectorySizeOfMinimumSpace).Select(d => d.Name)));
 Console.WriteLine();
 
 Console.WriteLine("Day 08:");

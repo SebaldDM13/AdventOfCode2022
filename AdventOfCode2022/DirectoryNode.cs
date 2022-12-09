@@ -23,4 +23,9 @@ public class DirectoryNode : INode
     {
         return children.OfType<DirectoryNode>().Single(d => d.Name == name);
     }
+
+    public IEnumerable<DirectoryNode> SubDirectories()
+    {
+        return children.OfType<DirectoryNode>();
+    }
 }

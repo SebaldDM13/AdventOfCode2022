@@ -2,13 +2,13 @@
 
 public class FileSystem
 {
-    public List<DirectoryNode> AllDirectories { get; } = new List<DirectoryNode>();
+    private const string PATH_SEPARATOR = "/";
 
-    public void Initialize(IEnumerable<string> lines)
+    public DirectoryNode Root { get; } = new(PATH_SEPARATOR);
+
+    public FileSystem(IEnumerable<string> lines)
     {
-        AllDirectories.Clear();
-        AllDirectories.Add(new("/"));
-        DirectoryNode current = AllDirectories[0];
+        DirectoryNode current = Root;
         bool isInListing = false;
 
         foreach (string line in lines)
@@ -16,43 +16,38 @@ public class FileSystem
             string[] tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (tokens[0] == "$")
             {
-                isInListing = false;
-                if (tokens[1] == "ls")
-                {
-                    isInListing = true;
-                }
+                isInListing = tokens[1] == "ls";
                 if (tokens[1] == "cd")
                 {
-                    if (tokens[2] == "/")
+                    current = tokens[2] switch
                     {
-                        current = AllDirectories[0];
-                    }
-                    else if (tokens[2] == "..")
-                    {
-                        if (current.Parent is not null)
-                        {
-                            current = current.Parent;
-                        }
-                    }
-                    else
-                    {
-                        current = current.SubDirectory(tokens[2]);
-                    }
+                        PATH_SEPARATOR => Root,
+                        ".." => (current.Parent is not null) ? current.Parent : current,
+                        _ => current.SubDirectory(tokens[2])
+                    };
                 }
             }
             else if (isInListing)
             {
-                if (tokens[0] == "dir")
-                {
-                    DirectoryNode subDirectory = new DirectoryNode(tokens[1]);
-                    current.Add(subDirectory);
-                    AllDirectories.Add(subDirectory);
-                }
-                else
-                {
-                    current.Add(new FileNode(tokens[1], int.Parse(tokens[0])));
-                }
+                current.Add(tokens[0] == "dir" ? new DirectoryNode(tokens[1]) : new FileNode(tokens[1], int.Parse(tokens[0])));
             }
         }
     }
+
+    public IEnumerable<DirectoryNode> DirectoryTraversal()
+    {
+        Queue<DirectoryNode> queue = new();
+        queue.Enqueue(Root);
+        while (queue.Count > 0)
+        {
+            DirectoryNode current = queue.Dequeue();
+            foreach (DirectoryNode subDirectory in current.SubDirectories())
+            {
+                queue.Enqueue(subDirectory);
+            }
+
+            yield return current;
+        }
+    }
+
 }
