@@ -1,6 +1,6 @@
 ﻿namespace AdventOfCode2022;
 
-public static class Extensions
+public static class ExtensionMethods
 {
     public static IEnumerable<int> Totals(this IEnumerable<string> lines)
     {
@@ -116,5 +116,19 @@ public static class Extensions
         }
 
         return -1;
+    }
+
+    public static int[,] ToGrid(this string[] lines)
+    {
+        int[,] grid = new int[lines.Length, lines[0].Length];
+        for (int row = 0; row < grid.GetLength(0); row++)
+        {
+            for (int column = 0; column < grid.GetLength(1); column++)
+            {
+                grid[row, column] = lines[row][column] - '0';
+            }
+        }
+
+        return grid;
     }
 }

@@ -79,3 +79,42 @@ Console.WriteLine("Unused space: " + unused);
 Console.WriteLine("Minimum space to free up: " + minimumSpaceToFreeUp);
 Console.WriteLine("Smallest directory size of at least the minimum space needed: " + smallestDirectorySizeOfMinimumSpace);
 Console.WriteLine("Directory name(s): " + string.Join(", ", fileSystem.AllDirectories.Where(d => d.Size == smallestDirectorySizeOfMinimumSpace).Select(d => d.Name)));
+Console.WriteLine();
+
+Console.WriteLine("Day 08:");
+lines = File.ReadAllLines(Path.Combine(path, "Day08.txt"));
+int[,] heightMap = lines.ToGrid();
+int visibleTreeCount = 0;
+int maxScenicScore = 0;
+(int, int)[] directions = new[] { (0, 1), (0, -1), (-1, 0), (1, 0) };
+for (int row = 0; row < heightMap.GetLength(0); row++)
+{
+    for (int column = 0; column < heightMap.GetLength(1); column++)
+    {
+        bool visibility = false;
+        int scenicScore = 1;
+        foreach ((int x, int y) in directions)
+        {
+            bool directionVisibility = true;
+            int directionScenicScore = 0;
+            for((int row2, int column2) = (row + y, column + x); row2 >= 0 && row2 < heightMap.GetLength(0) && column2 >= 0 && column2 < heightMap.GetLength(1); row2 += y, column2 += x)
+            {
+                directionScenicScore++;
+                if (heightMap[row, column] <= heightMap[row2, column2])
+                {
+                    directionVisibility = false;
+                    break;
+                }
+            }
+            visibility |= directionVisibility;
+            scenicScore *= directionScenicScore;
+        }
+
+        visibleTreeCount += visibility ? 1 : 0;
+        maxScenicScore = Math.Max(maxScenicScore, scenicScore);
+    }
+}
+
+Console.WriteLine("Visible tree count: " + visibleTreeCount);
+Console.WriteLine("Highest possible scenic score: " + maxScenicScore);
+Console.WriteLine();
