@@ -52,18 +52,6 @@ public static class ExtensionMethods
         return lines.Select(l => l.Halves());
     }
 
-    public static int PriorityValue(this char c) => c switch
-    {
-        >= 'a' and <= 'z' => c - 'a' + 1,
-        >= 'A' and <= 'Z' => c - 'A' + 27,
-        _ => 0
-    };
-
-    public static IEnumerable<int> PriorityValues(this IEnumerable<char> chars)
-    {
-        return chars.Select(c => PriorityValue(c));
-    }
-
     public static IEnumerable<string[]> Splits(this IEnumerable<string> strings, char separator)
     {
         return strings.Select(s => s.Split(separator));
@@ -80,7 +68,7 @@ public static class ExtensionMethods
         return -1;
     }
 
-    public static List<List<char>> Pivot(this string[] lines)
+    public static List<List<char>> TurnedClockwise(this string[] lines)
     {
         List<List<char>> table = new();
         for(int i = 0; i < lines[0].Length; i++)
@@ -95,27 +83,9 @@ public static class ExtensionMethods
         return table;
     }
 
-    public static List<List<char>> Copy(this List<List<char>> table)
-    {
-        List<List<char>> copy = new();
-        table.ForEach(row => copy.Add(new(row)));
-        return copy;
-    }
-
-    public static string Print(this IEnumerable<IEnumerable<char>> lines)
+    public static string ToText(this IEnumerable<IEnumerable<char>> lines)
     {
         return string.Join(Environment.NewLine, lines.Select(s => new string(s.ToArray())));
-    }
-
-    public static int NonRepeatingChainIndex(this string items, int chain)
-    {
-        for (int i = 0; i < items.Length - chain; i++)
-        {
-            if (items[i..(i + chain)].Distinct().Count() == chain)
-                return i;
-        }
-
-        return -1;
     }
 
     public static int[,] ToGrid(this string[] lines)
@@ -132,8 +102,15 @@ public static class ExtensionMethods
         return grid;
     }
 
-    public static bool IsWithin(this Vector2Int v, int[,] grid)
+    public static void Increment<T>(this Dictionary<T, int> dictionary, T key) where T : IEquatable<T>
     {
-        return 0 <= v.Y && v.Y < grid.GetLength(0) && 0 <= v.X && v.X < grid.GetLength(1);
+        dictionary.TryGetValue(key, out int value);
+        dictionary[key] = value + 1;
+    }
+
+    public static void Decrement<T>(this Dictionary<T, int> dictionary, T key) where T : IEquatable<T>
+    {
+        dictionary.TryGetValue(key, out int value);
+        dictionary[key] = value - 1;
     }
 }
