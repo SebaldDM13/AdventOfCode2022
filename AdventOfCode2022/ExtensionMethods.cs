@@ -113,4 +113,23 @@ public static class ExtensionMethods
         dictionary.TryGetValue(key, out int value);
         dictionary[key] = value - 1;
     }
+
+    public static long Product(this IEnumerable<int> ints)
+    {
+        long product = 1;
+        foreach (int i in ints)
+        {
+            product *= i;
+        }
+
+        return product;
+    }
+
+    public static void EnqueueRange<T>(this Queue<T> queue, IEnumerable<T> items)
+    {
+        foreach (T item in items)
+        {
+            queue.Enqueue(item);
+        }
+    }
 }

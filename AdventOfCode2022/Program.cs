@@ -213,6 +213,18 @@ static void Day10(string[] lines)
 
 static void Day11(string[] lines)
 {
+    static long MonkeyBusinessLevel() => Monkey.Troop.Select(m => m.TimesInspectedItems).OrderDescending().Take(2).Product();
+
+    Monkey.Troop.AddRange(lines.Chunk(7).Select(chunk => new Monkey(chunk)));
+    for (int t = 0; t < 20; t++)
+        Monkey.Troop.ForEach(m => m.TakeTurn(w => w / 3));
+    Console.WriteLine("Level of monkey business (Part 1): " + MonkeyBusinessLevel());
+
+    long product = Monkey.Troop.Select(m => m.ModuloDivisor).Product();
+    Monkey.Troop.ForEach(m => m.Reset());
+    for (int t = 0; t < 10000; t++)
+        Monkey.Troop.ForEach(m => m.TakeTurn(w => w % product));
+    Console.WriteLine("Level of monkey business (Part 2): " + MonkeyBusinessLevel());
 }
 
 static void Day12(string[] lines)
