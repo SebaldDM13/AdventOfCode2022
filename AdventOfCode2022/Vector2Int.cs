@@ -13,6 +13,13 @@ public struct Vector2Int : IEquatable<Vector2Int>
         Y = y;
     }
 
+    public Vector2Int(string s)
+    {
+        int commaIndex = s.IndexOf(',');
+        X = int.Parse(s.AsSpan(0, commaIndex));
+        Y = int.Parse(s.AsSpan(commaIndex + 1));
+    }
+
     public bool InBounds<T>(T[,] grid) => 0 <= Y && Y < grid.GetLength(0) && 0 <= X && X < grid.GetLength(1);
     public Vector2Int Sign() => new(Math.Sign(X), Math.Sign(Y));
     public Vector2Int Abs() => new(Math.Abs(X), Math.Abs(Y));
