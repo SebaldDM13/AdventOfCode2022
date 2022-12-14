@@ -1,4 +1,7 @@
-﻿namespace AdventOfCode2022;
+﻿using System.Collections.Specialized;
+using System.Text;
+
+namespace AdventOfCode2022;
 
 public static class ExtensionMethods
 {
@@ -71,7 +74,7 @@ public static class ExtensionMethods
     public static List<List<char>> TurnedClockwise(this string[] lines)
     {
         List<List<char>> table = new();
-        for(int i = 0; i < lines[0].Length; i++)
+        for (int i = 0; i < lines[0].Length; i++)
         {
             List<char> row = new();
             for (int j = lines.Length - 1; j >= 0; j--)
@@ -131,5 +134,17 @@ public static class ExtensionMethods
         {
             queue.Enqueue(item);
         }
+    }
+
+    public static int CountWhile<T>(this IEnumerable<T> collection, Predicate<T> predicate)
+    {
+        IEnumerator<T> enumerator = collection.GetEnumerator();
+        int count = 0;
+        while (enumerator.MoveNext() && predicate(enumerator.Current))
+        {
+            count++;
+        }
+
+        return count;
     }
 }

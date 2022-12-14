@@ -3,7 +3,6 @@
 public class FileSystem
 {
     private const string PATH_SEPARATOR = "/";
-
     public DirectoryNode Root { get; } = new(PATH_SEPARATOR);
 
     public FileSystem(IEnumerable<string> lines)
@@ -41,11 +40,7 @@ public class FileSystem
         while (queue.Count > 0)
         {
             DirectoryNode current = queue.Dequeue();
-            foreach (DirectoryNode subDirectory in current.SubDirectories())
-            {
-                queue.Enqueue(subDirectory);
-            }
-
+            queue.EnqueueRange(current.SubDirectories);
             yield return current;
         }
     }

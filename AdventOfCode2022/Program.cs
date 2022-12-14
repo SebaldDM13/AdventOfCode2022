@@ -1,4 +1,5 @@
 ﻿using AdventOfCode2022;
+using System.Text;
 
 Console.WriteLine("Advent of Code 2022");
 Console.WriteLine();
@@ -6,7 +7,7 @@ Console.WriteLine();
 Action<string[]>[] days = new Action<string[]>[] { Day01, Day02, Day03, Day04, Day05, Day06, Day07, Day08, Day09, Day10, Day11, Day12, Day13, Day14, Day15, Day16, Day17, Day18, Day19, Day20, Day21, Day22, Day23, Day24, Day25 };
 for(int day = 0; day < days.Length; day++)
 {
-    Console.WriteLine("Day" + (day + 1).ToString("00") + ":");
+    Console.WriteLine("Day " + (day + 1).ToString("00") + ":");
     string[] lines = File.ReadAllLines(Path.Combine("Input", "Day" + (day + 1).ToString("00") + ".txt"));
     days[day](lines);
     Console.WriteLine();
@@ -164,8 +165,9 @@ static void Day09(string[] lines)
     HashSet<Vector2Int>[] knotHistories = rope.Select(knot => new HashSet<Vector2Int>() { knot }).ToArray();
     foreach (string line in lines)
     {
-        Vector2Int direction = line[0] switch { 'U' => Vector2Int.Up, 'D' => Vector2Int.Down, 'L' => Vector2Int.Left, 'R' => Vector2Int.Right, _ => Vector2Int.Zero };
-        int moves = int.Parse(line[2..]);
+        string[] tokens = line.Split(' ');
+        Vector2Int direction = tokens[0][0] switch { 'U' => Vector2Int.Up, 'D' => Vector2Int.Down, 'L' => Vector2Int.Left, 'R' => Vector2Int.Right, _ => Vector2Int.Zero };
+        int moves = int.Parse(tokens[1]);
         for (int move = 0; move < moves; move++)
         {
             rope[0] += direction;
@@ -229,10 +231,89 @@ static void Day11(string[] lines)
 
 static void Day12(string[] lines)
 {
+
 }
 
 static void Day13(string[] lines)
 {
+    static bool IsInCorrectOrder(string a, string b)
+    {
+        List<string> aTokens = new(a.Replace("[", ",[,").Replace("]", ",],").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        List<string> bTokens = new(b.Replace("[", ",[,").Replace("]", ",],").Split(',', StringSplitOptions.RemoveEmptyEntries));
+
+        int aIndex;
+        int bIndex;
+        for(aIndex = 0, bIndex = 0; aIndex < aTokens.Count && bIndex < bTokens.Count; aIndex++, bIndex++)
+        {
+            bool aIsValue = int.TryParse(aTokens[aIndex], out int aValue);
+            bool bIsValue = int.TryParse(bTokens[bIndex], out int bValue);
+
+            if (aTokens[aIndex] == "[")
+            {
+                if (bTokens[bIndex] == "[")
+                {
+                }
+                else if (bTokens[bIndex] == "]")
+                {
+                    return false;
+                }
+                else if (bIsValue)
+                {
+                    bTokens.Insert(bIndex + 1, "]");
+                    bTokens.Insert(bIndex, "[");
+                }
+            }
+            else if (aTokens[aIndex] == "]")
+            {
+                if (bTokens[bIndex] == "[")
+                {
+                    return true;
+                }
+                else if (bTokens[bIndex] == "]")
+                {
+                }
+                else if (bIsValue)
+                {
+                    return true;
+                }
+            }
+            else if (aIsValue)
+            {
+                if (bTokens[bIndex] == "[")
+                {
+                    aTokens.Insert(aIndex + 1, "]");
+                    aTokens.Insert(aIndex, "[");
+                }
+                else if (bTokens[bIndex] == "]")
+                {
+                    return false;
+                }
+                else if (bIsValue)
+                {
+                    if (aValue < bValue)
+                        return true;
+                    else if (aValue > bValue)
+                        return false;
+                }
+            }
+        }
+
+        return aIndex < aTokens.Count || (aIndex == aTokens.Count && bIndex == bTokens.Count);
+    }
+
+    List<int> indicesOfPacketsInCorrectOrder = new();
+    for (int i = 0; i < lines.Length; i += 3)
+    {
+        if (IsInCorrectOrder(lines[i], lines[i + 1]))
+            indicesOfPacketsInCorrectOrder.Add(1 + i / 3);
+    }
+
+    Console.WriteLine("Sum of indices of packets in correct order: " + indicesOfPacketsInCorrectOrder.Sum());
+    int indexOfDividerPacket1 = lines.Count(s => s.Length > 0 && IsInCorrectOrder(s, "[[2]]")) + 1;
+    int indexOfDividerPacket2 = lines.Count(s => s.Length > 0 && IsInCorrectOrder(s, "[[6]]")) + 2;
+    Console.WriteLine("Index of divider packet 1: " + indexOfDividerPacket1);
+    Console.WriteLine("Index of divider packet 2: " + indexOfDividerPacket2);
+    Console.WriteLine("Product of packets: " + indexOfDividerPacket1 * indexOfDividerPacket2);
 }
 
 static void Day14(string[] lines)
