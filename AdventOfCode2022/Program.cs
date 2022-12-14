@@ -1,5 +1,5 @@
 ﻿using AdventOfCode2022;
-using System.Text;
+using System.Text.RegularExpressions;
 
 Console.WriteLine("Advent of Code 2022");
 Console.WriteLine();
@@ -238,67 +238,42 @@ static void Day13(string[] lines)
 {
     static bool IsInCorrectOrder(string a, string b)
     {
-        List<string> aTokens = new(a.Replace("[", ",[,").Replace("]", ",],").Split(',', StringSplitOptions.RemoveEmptyEntries));
-        List<string> bTokens = new(b.Replace("[", ",[,").Replace("]", ",],").Split(',', StringSplitOptions.RemoveEmptyEntries));
-
-        int aIndex;
-        int bIndex;
-        for(aIndex = 0, bIndex = 0; aIndex < aTokens.Count && bIndex < bTokens.Count; aIndex++, bIndex++)
+        Regex regex = new(@"\[|\]|\d+");
+        List<string> aTokens = regex.Matches(a).Select(m => m.Value).ToList();
+        List<string> bTokens = regex.Matches(b).Select(m => m.Value).ToList();
+        for(int i = 0; i < aTokens.Count && i < bTokens.Count; i++)
         {
-            bool aIsValue = int.TryParse(aTokens[aIndex], out int aValue);
-            bool bIsValue = int.TryParse(bTokens[bIndex], out int bValue);
+            bool aIsValue = int.TryParse(aTokens[i], out int aValue);
+            bool bIsValue = int.TryParse(bTokens[i], out int bValue);
 
-            if (aTokens[aIndex] == "[")
+            if (aTokens[i] == "]" && bTokens[i] != "]")
             {
-                if (bTokens[bIndex] == "[")
-                {
-                }
-                else if (bTokens[bIndex] == "]")
-                {
-                    return false;
-                }
-                else if (bIsValue)
-                {
-                    bTokens.Insert(bIndex + 1, "]");
-                    bTokens.Insert(bIndex, "[");
-                }
+                return true;
             }
-            else if (aTokens[aIndex] == "]")
+            else if (aTokens[i] != "]" && bTokens[i] == "]")
             {
-                if (bTokens[bIndex] == "[")
-                {
-                    return true;
-                }
-                else if (bTokens[bIndex] == "]")
-                {
-                }
-                else if (bIsValue)
-                {
-                    return true;
-                }
+                return false;
             }
-            else if (aIsValue)
+            else if (aTokens[i] == "[" && bIsValue)
             {
-                if (bTokens[bIndex] == "[")
-                {
-                    aTokens.Insert(aIndex + 1, "]");
-                    aTokens.Insert(aIndex, "[");
-                }
-                else if (bTokens[bIndex] == "]")
-                {
+                bTokens.Insert(i + 1, "]");
+                bTokens.Insert(i, "[");
+            }
+            else if (aIsValue && bTokens[i] == "[")
+            {
+                aTokens.Insert(i + 1, "]");
+                aTokens.Insert(i, "[");
+            }
+            else if (aIsValue && bIsValue)
+            {
+                if (aValue < bValue)
+                    return true;
+                else if (aValue > bValue)
                     return false;
-                }
-                else if (bIsValue)
-                {
-                    if (aValue < bValue)
-                        return true;
-                    else if (aValue > bValue)
-                        return false;
-                }
             }
         }
 
-        return aIndex < aTokens.Count || (aIndex == aTokens.Count && bIndex == bTokens.Count);
+        return aTokens.Count <= bTokens.Count;
     }
 
     List<int> indicesOfPacketsInCorrectOrder = new();
@@ -313,7 +288,7 @@ static void Day13(string[] lines)
     int indexOfDividerPacket2 = lines.Count(s => s.Length > 0 && IsInCorrectOrder(s, "[[6]]")) + 2;
     Console.WriteLine("Index of divider packet 1: " + indexOfDividerPacket1);
     Console.WriteLine("Index of divider packet 2: " + indexOfDividerPacket2);
-    Console.WriteLine("Product of packets: " + indexOfDividerPacket1 * indexOfDividerPacket2);
+    Console.WriteLine("Product of divider packet indices: " + indexOfDividerPacket1 * indexOfDividerPacket2);
 }
 
 static void Day14(string[] lines)
