@@ -1,15 +1,20 @@
 ﻿using AdventOfCode2022;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 Console.WriteLine("Advent of Code 2022");
 Console.WriteLine();
+Stopwatch stopwatch = new();
 
 Action<string[]>[] days = new Action<string[]>[] { Day01, Day02, Day03, Day04, Day05, Day06, Day07, Day08, Day09, Day10, Day11, Day12, Day13, Day14, Day15, Day16, Day17, Day18, Day19, Day20, Day21, Day22, Day23, Day24, Day25 };
 for(int day = 0; day < days.Length; day++)
 {
+    stopwatch.Restart();
     Console.WriteLine("Day " + (day + 1).ToString("00") + ":");
     string[] lines = File.ReadAllLines(Path.Combine("Input", "Day" + (day + 1).ToString("00") + ".txt"));
     days[day](lines);
+    stopwatch.Stop();
+    Console.WriteLine(stopwatch.ElapsedMilliseconds + " ms");
     Console.WriteLine();
 }
 
@@ -78,6 +83,7 @@ static void Day05(string[] lines)
     Console.WriteLine();
     Console.WriteLine("Part 2:");
     Console.WriteLine(table2.ToText());
+    Console.WriteLine();
 }
 
 static void Day06(string[] lines)
@@ -124,7 +130,7 @@ static void Day07(string[] lines)
 
 static void Day08(string[] lines)
 {
-    int[,] heightMap = lines.ToGrid();
+    int[,] heightMap = lines.ToGrid(c => c - '0');
     int visibleTreeCount = 0;
     int maxScenicScore = 0;
     for (Vector2Int location = new(); location.Y < heightMap.GetLength(1); location.Y++)
@@ -231,7 +237,66 @@ static void Day11(string[] lines)
 
 static void Day12(string[] lines)
 {
+    int minStepCount(int[,] heightMap, Vector2Int start, Vector2Int end)
+    {
+        HashSet<Vector2Int> open = new() { start };
+        HashSet<Vector2Int> closed = new();
+        Dictionary<Vector2Int, int> gCost = new() { { start, 0 } };
+        int hCost(Vector2Int v) => Vector2Int.ManhattanDistance(v, end);
+        int fCost(Vector2Int v) => gCost[v] + hCost(v);
 
+        while (true)
+        {
+            Vector2Int current = open.MinBy(v => fCost(v));
+            open.Remove(current);
+            closed.Add(current);
+
+            if (current == end)
+                return gCost[current];
+
+            int currentHeight = heightMap[current.Y, current.X];
+            foreach (Vector2Int direction in Vector2Int.Directions)
+            {
+                Vector2Int neighbor = current + direction;
+                if (neighbor.InBounds(heightMap) && heightMap[neighbor.Y, neighbor.X] <= currentHeight + 1 && !closed.Contains(neighbor))
+                {
+                    bool neighborHasExistingPath = gCost.TryGetValue(neighbor, out int neighborPath);
+                    if (!open.Contains(neighbor) || (neighborHasExistingPath && gCost[current] + 1 < neighborPath))
+                    {
+                        gCost[neighbor] = gCost[current] + 1;
+                        open.Add(neighbor);
+                    }
+                }
+            }
+        }
+    }
+
+    int[,] heightMap = lines.ToGrid(c => c switch { 'S' => 1, 'E' => 26, _ => c - 'a' + 1 });
+    (int startLine, int startChar) = lines.LineCharIndexOf('S');
+    (int endLine, int endChar) = lines.LineCharIndexOf('E');
+    Vector2Int start = new(startChar, startLine);
+    Vector2Int end = new(endChar, endLine);
+    int stepMinimum = minStepCount(heightMap, start, end);
+    Console.WriteLine("Step count (Part 1): " + stepMinimum);
+
+    int stepMinimumFromB = stepMinimum - 1;
+    for (Vector2Int alternateStart = new(0, 0); alternateStart.Y < heightMap.GetLength(0); alternateStart.Y++)
+    {
+        for (alternateStart.X = 0; alternateStart.X < heightMap.GetLength(1); alternateStart.X++)
+        {
+            if (heightMap[alternateStart.Y, alternateStart.X] == 2)
+            {
+                int alternateStartMinimum = minStepCount(heightMap, alternateStart, end);
+                if (alternateStartMinimum < stepMinimumFromB)
+                {
+                    stepMinimumFromB = alternateStartMinimum;
+                }
+            }
+        }
+    }
+
+    Console.WriteLine("Fewest steps from height b to end: " + stepMinimumFromB);
+    Console.WriteLine("Step count (Part 2): " + (stepMinimumFromB + 1));
 }
 
 static void Day13(string[] lines)

@@ -91,18 +91,30 @@ public static class ExtensionMethods
         return string.Join(Environment.NewLine, lines.Select(s => new string(s.ToArray())));
     }
 
-    public static int[,] ToGrid(this string[] lines)
+    public static int[,] ToGrid(this string[] lines, Func<char, int> conversion)
     {
         int[,] grid = new int[lines.Length, lines[0].Length];
         for (int y = 0; y < grid.GetLength(0); y++)
         {
             for (int x = 0; x < grid.GetLength(1); x++)
             {
-                grid[y, x] = lines[y][x] - '0';
+                grid[y, x] = conversion(lines[y][x]);
             }
         }
 
         return grid;
+    }
+
+    public static (int, int) LineCharIndexOf(this string[] lines, char c)
+    {
+        for (int line = 0; line < lines.Length; line++)
+        {
+            int charIndex = lines[line].IndexOf(c);
+            if (charIndex >= 0)
+                return (line, charIndex);
+        }
+
+        return (-1, -1);
     }
 
     public static void Increment<T>(this Dictionary<T, int> dictionary, T key) where T : IEquatable<T>

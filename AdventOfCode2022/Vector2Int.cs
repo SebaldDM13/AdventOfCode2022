@@ -25,6 +25,7 @@ public struct Vector2Int : IEquatable<Vector2Int>
     public Vector2Int Abs() => new(Math.Abs(X), Math.Abs(Y));
     public int Max() => Math.Max(X, Y);
     public int Min() => Math.Min(X, Y);
+    public static int ManhattanDistance(Vector2Int a, Vector2Int b) => Math.Abs(b.X - a.X) + Math.Abs(b.Y - a.Y);
     public static Vector2Int operator +(Vector2Int a, Vector2Int b) => new(a.X + b.X, a.Y + b.Y);
     public static Vector2Int operator -(Vector2Int a, Vector2Int b) => new(a.X - b.X, a.Y - b.Y);
     public static bool operator ==(Vector2Int lhs, Vector2Int rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y;
