@@ -382,75 +382,66 @@ static void Day14(string[] lines)
             {
                 rock.Add(point);
             }
-
-            rock.Add(waypoints[i + 1]);
         }
+
+        rock.Add(waypoints[^1]);
     }
 
     int bottom = rock.Select(v => v.Y).Max();
-    HashSet<Vector2Int> sand = new();
+    HashSet<Vector2Int> occupied = new(rock);
     Vector2Int inflow = new(500, 0);
     Vector2Int sandPosition = inflow;
     while (sandPosition.Y < bottom)
     {
-        Vector2Int downMove = sandPosition + new Vector2Int(0, 1);
-        Vector2Int downLeftMove = sandPosition + new Vector2Int(-1, 1);
-        Vector2Int downRightMove = sandPosition + new Vector2Int(1, 1);
-
-        if (!rock.Contains(downMove) && !sand.Contains(downMove))
+        sandPosition.Y++;
+        if (occupied.Contains(sandPosition))
         {
-            sandPosition = downMove;
-        }
-        else if (!rock.Contains(downLeftMove) && !sand.Contains(downLeftMove))
-        {
-            sandPosition = downLeftMove;
-        }
-        else if (!rock.Contains(downRightMove) && !sand.Contains(downRightMove))
-        {
-            sandPosition = downRightMove;
-        }
-        else
-        {
-            sand.Add(sandPosition);
-            sandPosition = inflow;
+            sandPosition.X--;
+            if (occupied.Contains(sandPosition))
+            {
+                sandPosition.X += 2;
+                if (occupied.Contains(sandPosition))
+                {
+                    sandPosition.X--;
+                    sandPosition.Y--;
+                    occupied.Add(sandPosition);
+                    sandPosition = inflow;
+                }
+            }
         }
     }
 
-    Console.WriteLine("Units of sand that came to a rest (Part 1): " + sand.Count);
+    Console.WriteLine("Units of sand that came to a rest (Part 1): " + (occupied.Count - rock.Count));
 
-    sand.Clear();
+    occupied.Clear();
+    occupied.UnionWith(rock);
     bottom += 2;
     sandPosition = inflow;
     while (true)
     {
-        Vector2Int downMove = sandPosition + new Vector2Int(0, 1);
-        Vector2Int downLeftMove = sandPosition + new Vector2Int(-1, 1);
-        Vector2Int downRightMove = sandPosition + new Vector2Int(1, 1);
-
-        if (downMove.Y < bottom && !rock.Contains(downMove) && !sand.Contains(downMove))
+        sandPosition.Y++;
+        if (sandPosition.Y >= bottom || occupied.Contains(sandPosition))
         {
-            sandPosition = downMove;
-        }
-        else if (downLeftMove.Y < bottom && !rock.Contains(downLeftMove) && !sand.Contains(downLeftMove))
-        {
-            sandPosition = downLeftMove;
-        }
-        else if (downRightMove.Y < bottom && !rock.Contains(downRightMove) && !sand.Contains(downRightMove))
-        {
-            sandPosition = downRightMove;
-        }
-        else
-        {
-            sand.Add(sandPosition);
-            if (sandPosition == inflow)
+            sandPosition.X--;
+            if (sandPosition.Y >= bottom || occupied.Contains(sandPosition))
             {
-                break;
+                sandPosition.X += 2;
+                if (sandPosition.Y >= bottom || occupied.Contains(sandPosition))
+                {
+                    sandPosition.X--;
+                    sandPosition.Y--;
+                    occupied.Add(sandPosition);
+
+                    if (sandPosition == inflow)
+                        break;
+
+                    sandPosition = inflow;
+                }
             }
-            sandPosition = inflow;
         }
     }
 
-    Console.WriteLine("Units of sand that came to a rest (Part 2): " + sand.Count);
+    Console.WriteLine("Units of sand that came to a rest (Part 2): " + (occupied.Count - rock.Count));
 }
 
 static void Day15(string[] lines)
