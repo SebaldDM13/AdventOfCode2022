@@ -117,18 +117,6 @@ public static class ExtensionMethods
         return (-1, -1);
     }
 
-    public static void Increment<T>(this Dictionary<T, int> dictionary, T key) where T : IEquatable<T>
-    {
-        dictionary.TryGetValue(key, out int value);
-        dictionary[key] = value + 1;
-    }
-
-    public static void Decrement<T>(this Dictionary<T, int> dictionary, T key) where T : IEquatable<T>
-    {
-        dictionary.TryGetValue(key, out int value);
-        dictionary[key] = value - 1;
-    }
-
     public static long Product(this IEnumerable<int> ints)
     {
         long product = 1;
@@ -140,13 +128,7 @@ public static class ExtensionMethods
         return product;
     }
 
-    public static void EnqueueRange<T>(this Queue<T> queue, IEnumerable<T> items)
-    {
-        foreach (T item in items)
-        {
-            queue.Enqueue(item);
-        }
-    }
+
 
     public static int CountWhile<T>(this IEnumerable<T> collection, Predicate<T> predicate)
     {

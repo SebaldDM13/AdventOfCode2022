@@ -1,6 +1,7 @@
 ﻿using AdventOfCode2022;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Range = AdventOfCode2022.Range;
 
 Console.WriteLine("Advent of Code 2022");
 Console.WriteLine();
@@ -446,6 +447,49 @@ static void Day14(string[] lines)
 
 static void Day15(string[] lines)
 {
+    Vector2Int[] sensorLocations = new Vector2Int[lines.Length];
+    Vector2Int[] beaconLocations = new Vector2Int[lines.Length];
+    int[] distances = new int[lines.Length];
+
+    List<Range>[] sensedRanges = new List<Range>[4000001];
+    for(int row = 0; row < sensedRanges.Length;  row++)
+    {
+        sensedRanges[row] = new List<Range>();
+    }
+
+    for (int line = 0; line < lines.Length; line++)
+    {
+        Regex regex = new(@"-?\d+");
+        MatchCollection matches = regex.Matches(lines[line]);
+        sensorLocations[line] = new Vector2Int(int.Parse(matches[0].Value), int.Parse(matches[1].Value));
+        beaconLocations[line] = new Vector2Int(int.Parse(matches[2].Value), int.Parse(matches[3].Value));
+        distances[line] = Vector2Int.ManhattanDistance(sensorLocations[line], beaconLocations[line]);
+
+        for (int row = Math.Max(0, sensorLocations[line].Y - distances[line]); row <= Math.Min(sensedRanges.Length - 1, sensorLocations[line].Y + distances[line]); row++)
+        {
+            int rowToSensorDistance = Math.Abs(row - sensorLocations[line].Y);
+            int possibleColumnDistance = distances[line] - rowToSensorDistance;
+            sensedRanges[row].Add(new Range(sensorLocations[line].X - possibleColumnDistance, sensorLocations[line].X + possibleColumnDistance));
+        }
+    }
+
+    int targetRow = 2000000;
+    IEnumerable<Range> joinedRanges = sensedRanges[targetRow].Union();
+    int positionCount = joinedRanges.Sum(r => r.Count) - beaconLocations.Distinct().Count(b => b.Y == targetRow && joinedRanges.Any(r => r.Contains(b.X)));
+    Console.WriteLine($"Count of positions in row {targetRow} known not to have a beacon: {positionCount}");
+
+    for (int row = 0; row < sensedRanges.Length; row++)
+    {
+        joinedRanges = sensedRanges[row].Union().Capped(new Range(0, 4000000));
+        if (joinedRanges.Count() > 1)
+        {
+            int column = joinedRanges.First().End + 1;
+            long tuningFrequency = column * 4000000L + row;
+            Console.WriteLine($"Distress beacon is at x={column}, y={row}");
+            Console.WriteLine("Tuning frequency: " + tuningFrequency);
+            break;
+        }
+    }
 }
 
 static void Day16(string[] lines)

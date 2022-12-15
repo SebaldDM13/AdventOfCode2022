@@ -1,4 +1,6 @@
-﻿public readonly struct Range
+﻿namespace AdventOfCode2022;
+
+public readonly struct Range
 {
     public readonly int Start { get; init; }
     public readonly int End { get; init; }
@@ -30,4 +32,11 @@
     {
         return other.Start <= End && Start <= other.End;
     }
+
+    public bool Contains(int i)
+    {
+        return Start <= i && i <= End;
+    }
+
+    public int Count => End - Start + 1;
 }
