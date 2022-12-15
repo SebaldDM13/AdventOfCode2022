@@ -271,32 +271,45 @@ static void Day12(string[] lines)
         }
     }
 
-    int[,] heightMap = lines.ToGrid(c => c switch { 'S' => 1, 'E' => 26, _ => c - 'a' + 1 });
-    (int startLine, int startChar) = lines.LineCharIndexOf('S');
-    (int endLine, int endChar) = lines.LineCharIndexOf('E');
-    Vector2Int start = new(startChar, startLine);
-    Vector2Int end = new(endChar, endLine);
-    int stepMinimum = minStepCount(heightMap, start, end);
-    Console.WriteLine("Step count (Part 1): " + stepMinimum);
-
-    int stepMinimumFromB = stepMinimum - 1;
-    for (Vector2Int alternateStart = new(0, 0); alternateStart.Y < heightMap.GetLength(0); alternateStart.Y++)
+    int minStepCountFromHeight(int[,] heightMap, int startHeight, Vector2Int end)
     {
-        for (alternateStart.X = 0; alternateStart.X < heightMap.GetLength(1); alternateStart.X++)
+        HashSet<Vector2Int> open = new() { end };
+        HashSet<Vector2Int> closed = new();
+        Dictionary<Vector2Int, int> gCost = new() { { end, 0 } };
+
+        while (true)
         {
-            if (heightMap[alternateStart.Y, alternateStart.X] == 2)
+            Vector2Int current = open.MinBy(v => gCost[v]);
+            open.Remove(current);
+            closed.Add(current);
+
+            int currentHeight = heightMap[current.Y, current.X];
+            if (currentHeight == 1)
+                return gCost[current];
+
+            foreach (Vector2Int direction in Vector2Int.Directions)
             {
-                int alternateStartMinimum = minStepCount(heightMap, alternateStart, end);
-                if (alternateStartMinimum < stepMinimumFromB)
+                Vector2Int neighbor = current + direction;
+                if (neighbor.InBounds(heightMap) && heightMap[neighbor.Y, neighbor.X] >= currentHeight - 1 && !closed.Contains(neighbor))
                 {
-                    stepMinimumFromB = alternateStartMinimum;
+                    bool neighborHasExistingPath = gCost.TryGetValue(neighbor, out int neighborPath);
+                    if (!open.Contains(neighbor) || (neighborHasExistingPath && gCost[current] + 1 < neighborPath))
+                    {
+                        gCost[neighbor] = gCost[current] + 1;
+                        open.Add(neighbor);
+                    }
                 }
             }
         }
     }
 
-    Console.WriteLine("Fewest steps from height b to end: " + stepMinimumFromB);
-    Console.WriteLine("Step count (Part 2): " + (stepMinimumFromB + 1));
+    int[,] heightMap = lines.ToGrid(c => c switch { 'S' => 1, 'E' => 26, _ => c - 'a' + 1 });
+    (int startLine, int startChar) = lines.LineCharIndexOf('S');
+    (int endLine, int endChar) = lines.LineCharIndexOf('E');
+    Vector2Int start = new(startChar, startLine);
+    Vector2Int end = new(endChar, endLine);
+    Console.WriteLine("Step count (Part 1): " + minStepCount(heightMap, start, end));
+    Console.WriteLine("Step count (Part 2): " + minStepCountFromHeight(heightMap, 1, end));
 }
 
 static void Day13(string[] lines)
