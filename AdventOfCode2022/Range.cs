@@ -13,14 +13,21 @@ public readonly struct Range
 
     public Range(string s)
     {
-        string[] strings = s.Split('-');
-        Start = int.Parse(strings[0].Trim());
-        End = int.Parse(strings[1].Trim());
+        int dashIndex = s.IndexOf('-');
+        if (dashIndex < 0)
+        {
+            Start = End = int.Parse(s);
+        }
+        else
+        {
+            Start = int.Parse(s[..dashIndex]);
+            End = int.Parse(s[(dashIndex + 1)..]);
+        }
     }
 
     public override string ToString()
     {
-        return $"{Start}-{End}";
+        return (Start == End) ? $"{Start}" : $"{Start}-{End}";
     }
 
     public bool FullyContains(Range other)
@@ -33,10 +40,21 @@ public readonly struct Range
         return other.Start <= End && Start <= other.End;
     }
 
+    public bool Touches(Range other)
+    {
+        return other.Start <= End + 1 && Start <= other.End + 1;
+    }
+
     public bool Contains(int i)
     {
         return Start <= i && i <= End;
     }
 
     public int Count => End - Start + 1;
+
+    public void Deconstruct(out int start, out int end)
+    {
+        start = Start;
+        end = End;
+    }
 }

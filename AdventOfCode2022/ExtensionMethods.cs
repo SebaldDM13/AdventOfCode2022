@@ -1,7 +1,4 @@
-﻿using System.Collections.Specialized;
-using System.Text;
-
-namespace AdventOfCode2022;
+﻿namespace AdventOfCode2022;
 
 public static class ExtensionMethods
 {
@@ -127,8 +124,6 @@ public static class ExtensionMethods
 
         return product;
     }
-
-
 
     public static int CountWhile<T>(this IEnumerable<T> collection, Predicate<T> predicate)
     {

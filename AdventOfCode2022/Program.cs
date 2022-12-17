@@ -317,9 +317,8 @@ static void Day13(string[] lines)
 {
     static bool IsInCorrectOrder(string a, string b)
     {
-        Regex regex = new(@"\[|\]|\d+");
-        List<string> aTokens = regex.Matches(a).Select(m => m.Value).ToList();
-        List<string> bTokens = regex.Matches(b).Select(m => m.Value).ToList();
+        List<string> aTokens = BracketOrIntegerRegex().Matches(a).Select(m => m.Value).ToList();
+        List<string> bTokens = BracketOrIntegerRegex().Matches(b).Select(m => m.Value).ToList();
         for(int i = 0; i < aTokens.Count && i < bTokens.Count; i++)
         {
             bool aIsValue = int.TryParse(aTokens[i], out int aValue);
@@ -450,40 +449,40 @@ static void Day15(string[] lines)
     Vector2Int[] sensorLocations = new Vector2Int[lines.Length];
     Vector2Int[] beaconLocations = new Vector2Int[lines.Length];
     int[] distances = new int[lines.Length];
-
-    List<Range>[] sensedRanges = new List<Range>[4000001];
-    for(int row = 0; row < sensedRanges.Length;  row++)
-    {
-        sensedRanges[row] = new List<Range>();
-    }
-
     for (int line = 0; line < lines.Length; line++)
     {
-        Regex regex = new(@"-?\d+");
-        MatchCollection matches = regex.Matches(lines[line]);
+        MatchCollection matches = IntegerRegex().Matches(lines[line]);
         sensorLocations[line] = new Vector2Int(int.Parse(matches[0].Value), int.Parse(matches[1].Value));
         beaconLocations[line] = new Vector2Int(int.Parse(matches[2].Value), int.Parse(matches[3].Value));
         distances[line] = Vector2Int.ManhattanDistance(sensorLocations[line], beaconLocations[line]);
-
-        for (int row = Math.Max(0, sensorLocations[line].Y - distances[line]); row <= Math.Min(sensedRanges.Length - 1, sensorLocations[line].Y + distances[line]); row++)
-        {
-            int rowToSensorDistance = Math.Abs(row - sensorLocations[line].Y);
-            int possibleColumnDistance = distances[line] - rowToSensorDistance;
-            sensedRanges[row].Add(new Range(sensorLocations[line].X - possibleColumnDistance, sensorLocations[line].X + possibleColumnDistance));
-        }
     }
 
-    int targetRow = 2000000;
-    IEnumerable<Range> joinedRanges = sensedRanges[targetRow].Union();
-    int positionCount = joinedRanges.Sum(r => r.Count) - beaconLocations.Distinct().Count(b => b.Y == targetRow && joinedRanges.Any(r => r.Contains(b.X)));
-    Console.WriteLine($"Count of positions in row {targetRow} known not to have a beacon: {positionCount}");
-
-    for (int row = 0; row < sensedRanges.Length; row++)
+    RangeList rangeListForRow(int row)
     {
-        joinedRanges = sensedRanges[row].Union().Capped(new Range(0, 4000000));
-        if (joinedRanges.Count() > 1)
+        RangeList sensedRangeList = new();
+        for (int i = 0; i < sensorLocations.Length; i++)
         {
-            int column = joinedRanges.First().End + 1;
+            int rowDistance = Math.Abs(row - sensorLocations[i].Y);
+            int possibleColumnDistance = distances[i] - rowDistance;
+            if (possibleColumnDistance >= 0)
+            {
+                sensedRangeList.Add(new Range(sensorLocations[i].X - possibleColumnDistance, sensorLocations[i].X + possibleColumnDistance));
+            }
+        }
+        return sensedRangeList;
+    }
+        
+    bool useSmallSearchSpace = sensorLocations.All(s => s.X <= 20 && s.Y <= 20);
+    int targetRow = useSmallSearchSpace ? 10 : 2000000;
+    RangeList sensedRangeList = rangeListForRow(targetRow);
+    int positionCount = sensedRangeList.Count - beaconLocations.Distinct().Count(b => b.Y == targetRow && sensedRangeList.Contains(b.X));
+    Console.WriteLine($"Count of positions in row {targetRow} known not to have a beacon: {positionCount}");
+    for (int row = useSmallSearchSpace ? 20 : 4000000; row >= 0; row--)
+    {
+        sensedRangeList = rangeListForRow(row);
+        if (sensedRangeList.PieceCount > 1)
+        {
+            int column = sensedRangeList.Piece(0).End + 1;
             long tuningFrequency = column * 4000000L + row;
             Console.WriteLine($"Distress beacon is at x={column}, y={row}");
             Console.WriteLine("Tuning frequency: " + tuningFrequency);
@@ -530,4 +529,13 @@ static void Day24(string[] lines)
 
 static void Day25(string[] lines)
 {
+}
+
+partial class Program
+{
+    [GeneratedRegex(@"-?\d+")]
+    private static partial Regex IntegerRegex();
+
+    [GeneratedRegex(@"\[|\]|-?\d+")]
+    private static partial Regex BracketOrIntegerRegex();
 }
