@@ -51,10 +51,4 @@ public readonly struct Range
     }
 
     public int Count => End - Start + 1;
-
-    public void Deconstruct(out int start, out int end)
-    {
-        start = Start;
-        end = End;
-    }
 }

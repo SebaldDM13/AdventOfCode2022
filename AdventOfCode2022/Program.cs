@@ -1,5 +1,6 @@
 ﻿using AdventOfCode2022;
 using System.Diagnostics;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using Range = AdventOfCode2022.Range;
 
@@ -8,6 +9,33 @@ Console.WriteLine();
 Stopwatch stopwatch = new();
 
 Action<string[]>[] days = new Action<string[]>[] { Day01, Day02, Day03, Day04, Day05, Day06, Day07, Day08, Day09, Day10, Day11, Day12, Day13, Day14, Day15, Day16, Day17, Day18, Day19, Day20, Day21, Day22, Day23, Day24, Day25 };
+(string, string)[] yourPuzzleAnswers = new[] {
+    ("70509", "208567"),
+    ("12586", "13193"),
+    ("7763", "2659"),
+    ("500", "815"),
+    ("MQSHJMWNH", "LLWJRBHVZ"),
+    ("1175", "3217"),
+    ("1297683", "5756764"),
+    ("1789", "314820"),
+    ("6311", "2482"),
+    ("13220", "RUAKHBEK"),
+    ("120056", "21816744824"),
+    ("420", "414"),
+    ("4643", "21614"),
+    ("805", "25161"),
+    ("6275922", "11747175442119"),
+    ("?", "?"),
+    ("?", "?"),
+    ("?", "?"),
+    ("?", "?"),
+    ("?", "?"),
+    ("?", "?"),
+    ("?", "?"),
+    ("?", "?"),
+    ("?", "?"),
+    ("?", "?")
+};
 for(int day = 0; day < days.Length; day++)
 {
     stopwatch.Restart();
@@ -15,31 +43,66 @@ for(int day = 0; day < days.Length; day++)
     string[] lines = File.ReadAllLines(Path.Combine("Input", "Day" + (day + 1).ToString("00") + ".txt"));
     days[day](lines);
     stopwatch.Stop();
-    Console.WriteLine(stopwatch.ElapsedMilliseconds + " ms");
     Console.WriteLine();
+    Console.WriteLine($"Solution time: {stopwatch.ElapsedMilliseconds} ms");
+    Console.WriteLine($"Your puzzle answers were {yourPuzzleAnswers[day].Item1} and {yourPuzzleAnswers[day].Item2}");
+    Console.WriteLine();
+    Console.WriteLine();
+}
+
+static int[,] ToGrid(string[] lines, Func<char, int> conversion)
+{
+    int[,] grid = new int[lines.Length, lines[0].Length];
+    for (int y = 0; y < grid.GetLength(0); y++)
+    {
+        for (int x = 0; x < grid.GetLength(1); x++)
+        {
+            grid[y, x] = conversion(lines[y][x]);
+        }
+    }
+
+    return grid;
 }
 
 static void Day01(string[] lines)
 {
-    Console.WriteLine("Most Calories total: " + lines.Totals().Max());
-    Console.WriteLine("Sum of top three Calorie totals: " + lines.Totals().OrderDescending().Take(3).Sum());
+    static IEnumerable<int> totals(string[] values)
+    {
+        int sum = 0;
+        foreach (string s in values)
+        {
+            if (s.Length == 0)
+            {
+                yield return sum;
+                sum = 0;
+            }
+            else
+            {
+                sum += int.Parse(s);
+            }
+        }
+        yield return sum;
+    }
+
+    Console.WriteLine("Most Calories total: " + totals(lines).Max());
+    Console.WriteLine("Sum of top three Calorie totals: " + totals(lines).OrderDescending().Take(3).Sum());
 }
 
 static void Day02(string[] lines)
 {
-    static int to_1_rock_2_paper_3_scissors(char c) => c switch { 'A' => 1, 'B' => 2, 'C' => 3, 'X' => 1, 'Y' => 2, 'Z' => 3, _ => 1 };
-    static int to_0_lose_1_tie_2_win(char c) => c switch { 'X' => 0, 'Y' => 1, 'Z' => 2, _ => 0 };
-    static int rockPaperScissorsResult(int yourMove, int opponentMove) => (yourMove - opponentMove + 4) % 3;
-    static int yourMove(int opponentMove, int result) => (opponentMove + result + 1) % 3 + 1;
+    static int To_1_rock_2_paper_3_scissors(char c) => c switch { 'A' => 1, 'B' => 2, 'C' => 3, 'X' => 1, 'Y' => 2, 'Z' => 3, _ => 1 };
+    static int To_0_lose_1_tie_2_win(char c) => c switch { 'X' => 0, 'Y' => 1, 'Z' => 2, _ => 0 };
+    static int RockPaperScissorsResult(int yourMove, int opponentMove) => (yourMove - opponentMove + 4) % 3;
+    static int YourMove(int opponentMove, int result) => (opponentMove + result + 1) % 3 + 1;
     int score1 = 0;
     int score2 = 0;
     foreach (string line in lines)
     {
-        int opponentMove = to_1_rock_2_paper_3_scissors(line[0]);
-        int yourPart1Move = to_1_rock_2_paper_3_scissors(line[2]);
-        int part2Result = to_0_lose_1_tie_2_win(line[2]);
-        score1 += yourPart1Move + 3 * rockPaperScissorsResult(yourPart1Move, opponentMove);
-        score2 += yourMove(opponentMove, part2Result) + 3 * part2Result;
+        int opponentMove = To_1_rock_2_paper_3_scissors(line[0]);
+        int yourPart1Move = To_1_rock_2_paper_3_scissors(line[2]);
+        int part2Result = To_0_lose_1_tie_2_win(line[2]);
+        score1 += yourPart1Move + 3 * RockPaperScissorsResult(yourPart1Move, opponentMove);
+        score2 += YourMove(opponentMove, part2Result) + 3 * part2Result;
     }
 
     Console.WriteLine("Part 1 score: " + score1);
@@ -48,68 +111,96 @@ static void Day02(string[] lines)
 
 static void Day03(string[] lines)
 {
-    static int priorityValue(char c) => c switch { >= 'a' and <= 'z' => c - 'a' + 1, >= 'A' and <= 'Z' => c - 'A' + 27, _ => 0 };
-    Console.WriteLine("Priority sum of common items: " + lines.Halves().CommonCharacters().Singles().Sum(priorityValue));
-    Console.WriteLine("Priority sum of badges: " + lines.Chunk(3).CommonCharacters().Singles().Sum(priorityValue));
+    static char CommonCharacterInHalves(string s)
+    {
+        return s[..(s.Length / 2)].Intersect(s[(s.Length / 2)..]).Single();
+    }
+
+    static char CommonCharacterInGroup(IEnumerable<string> strings)
+    {
+        IEnumerator<string> enumerator = strings.GetEnumerator();
+        enumerator.MoveNext();
+        IEnumerable<char> common = enumerator.Current;
+        while (enumerator.MoveNext())
+        {
+            common = common.Intersect(enumerator.Current);
+        }
+
+        return common.Single();
+    }
+
+    static int PriorityValue(char c) => c switch
+    { 
+        >= 'a' and <= 'z' => c - 'a' + 1,
+        >= 'A' and <= 'Z' => c - 'A' + 27,
+        _ => 0
+    };
+
+    Console.WriteLine("Priority sum of common items: " + lines.Select(CommonCharacterInHalves).Sum(PriorityValue));
+    Console.WriteLine("Priority sum of badges: " + lines.Chunk(3).Select(CommonCharacterInGroup).Sum(PriorityValue));
 }
 
 static void Day04(string[] lines)
 {
-    IEnumerable<Range[]> ranges = lines.Splits(',').Select(s => new []{ new Range(s[0]), new Range(s[1]) });
-    Console.WriteLine("Count of pairs where a range fully contains the other: " + ranges.Count(r => r[0].FullyContains(r[1]) || r[1].FullyContains(r[0])));
-    Console.WriteLine("Count of overlapping range pairs: " + ranges.Count(r => r[0].Overlaps(r[1])));
+    (Range, Range) Ranges(string s)
+    {
+        int i = s.IndexOf(',');
+        return (new(s[..i]), new(s[(i + 1)..]));
+    }
+
+    Console.WriteLine("Count of pairs where a range fully contains the other: " + lines.Select(Ranges).Count(r => r.Item1.FullyContains(r.Item2) || r.Item2.FullyContains(r.Item1)));
+    Console.WriteLine("Count of overlapping range pairs: " + lines.Select(Ranges).Count(r => r.Item1.Overlaps(r.Item2)));
 }
 
 static void Day05(string[] lines)
 {
-    int index = lines.EmptyLineIndex();
-    List<List<char>> table1 = lines[..index].TurnedClockwise();
-    table1.RemoveAll(r => r[0] == ' ');
-    table1.ForEach(r => r.RemoveAll(c => c == ' '));
-    List<List<char>> table2 = new(table1.Select(r => new List<char>(r)));
-    foreach (string instruction in lines[(index + 1)..])
+    IEnumerable<string> cargoLines = lines.Where(s => s.StartsWith('[') || s.StartsWith(' '));
+    IEnumerable<int> stackIndices = Enumerable.Range(0, cargoLines.Last().Length).Where(i => cargoLines.Last()[i] != ' ');
+    List<List<char>> cargo1 = stackIndices.Select(i => cargoLines.Reverse().Select(s => s[i]).Where(c => c != ' ').ToList()).ToList();
+    List<List<char>> cargo2 = stackIndices.Select(i => cargoLines.Reverse().Select(s => s[i]).Where(c => c != ' ').ToList()).ToList();
+
+    foreach (string line in lines.Where(s => s.StartsWith("move")))
     {
-        string[] tokens = instruction.Split(' ');
+        string[] tokens = line.Split(' ');
         int quantity = int.Parse(tokens[1]);
         int source = int.Parse(tokens[3]) - 1;
         int destination = int.Parse(tokens[5]) - 1;
-        table1[destination].AddRange(table1[source].Skip(table1[source].Count - quantity).Reverse());
-        table2[destination].AddRange(table2[source].Skip(table2[source].Count - quantity));
-        table1[source].RemoveRange(table1[source].Count - quantity, quantity);
-        table2[source].RemoveRange(table2[source].Count - quantity, quantity);
+        cargo1[destination].AddRange(cargo1[source].Skip(cargo1[source].Count - quantity).Reverse());
+        cargo2[destination].AddRange(cargo2[source].Skip(cargo2[source].Count - quantity));
+        cargo1[source].RemoveRange(cargo1[source].Count - quantity, quantity);
+        cargo2[source].RemoveRange(cargo2[source].Count - quantity, quantity);
     }
+
     Console.WriteLine();
     Console.WriteLine("Part 1:");
-    Console.WriteLine(table1.ToText());
+    cargo1.ForEach(stack => Console.WriteLine(string.Join(null, stack)));
     Console.WriteLine();
     Console.WriteLine("Part 2:");
-    Console.WriteLine(table2.ToText());
-    Console.WriteLine();
+    cargo2.ForEach(stack => Console.WriteLine(string.Join(null, stack)));
 }
 
 static void Day06(string[] lines)
 {
-    static int processedCharactersToDetectMarker(string buffer, int markerLength)
+    static int CountOfCharactersToDetectMarker(string buffer, int markerLength)
     {
         Dictionary<char, int> characterCounts = new();
-        for (int i = 0; i < buffer.Length; i++)
+        int i;
+        for (i = 0; i < markerLength; i++)
         {
-            if (i >= markerLength)
-            {
-                if (characterCounts.Values.All(v => v <= 1))
-                    return i;
-
-                characterCounts.Decrement(buffer[i - markerLength]);
-            }
-
             characterCounts.Increment(buffer[i]);
         }
 
-        return -1;
+        for (; characterCounts.Values.Any(v => v > 1); i++)
+        {
+            characterCounts.Decrement(buffer[i - markerLength]);
+            characterCounts.Increment(buffer[i]);
+        }
+
+        return i;
     }
 
-    Console.WriteLine("Processed characters for marker length 4: " + processedCharactersToDetectMarker(lines[0], 4));
-    Console.WriteLine("Processed characters for marker length 14: " + processedCharactersToDetectMarker(lines[0], 14));
+    Console.WriteLine("Processed characters to obtain marker length 4: " + CountOfCharactersToDetectMarker(lines[0], 4));
+    Console.WriteLine("Processed characters to obtain marker length 14: " + CountOfCharactersToDetectMarker(lines[0], 14));
 }
 
 static void Day07(string[] lines)
@@ -131,12 +222,13 @@ static void Day07(string[] lines)
 
 static void Day08(string[] lines)
 {
-    int[,] heightMap = lines.ToGrid(c => c - '0');
+    int[,] heightMap = ToGrid(lines, c => c - '0');
     int visibleTreeCount = 0;
     int maxScenicScore = 0;
-    for (Vector2Int location = new(); location.Y < heightMap.GetLength(1); location.Y++)
+    Vector2Int bounds = new(heightMap.GetLength(1), heightMap.GetLength(0));
+    for (Vector2Int location = Vector2Int.Zero; location.Y < bounds.Y; location.Y++)
     {
-        for (location.X = 0; location.X < heightMap.GetLength(0); location.X++)
+        for (location.X = 0; location.X < bounds.X; location.X++)
         {
             bool visibility = false;
             int scenicScore = 1;
@@ -144,7 +236,7 @@ static void Day08(string[] lines)
             {
                 bool directionVisibility = true;
                 int directionScenicScore = 0;
-                for (Vector2Int scan = location + direction; scan.InBounds(heightMap); scan += direction)
+                for (Vector2Int scan = location + direction; scan >= Vector2Int.Zero && scan < bounds; scan += direction)
                 {
                     directionScenicScore++;
                     if (heightMap[scan.Y, scan.X] >= heightMap[location.Y, location.X])
@@ -172,17 +264,17 @@ static void Day09(string[] lines)
     HashSet<Vector2Int>[] knotHistories = rope.Select(knot => new HashSet<Vector2Int>() { knot }).ToArray();
     foreach (string line in lines)
     {
-        string[] tokens = line.Split(' ');
-        Vector2Int direction = tokens[0][0] switch { 'U' => Vector2Int.Up, 'D' => Vector2Int.Down, 'L' => Vector2Int.Left, 'R' => Vector2Int.Right, _ => Vector2Int.Zero };
-        int moves = int.Parse(tokens[1]);
-        for (int move = 0; move < moves; move++)
+        Vector2Int direction = line[0] switch { 'U' => Vector2Int.Up, 'D' => Vector2Int.Down, 'L' => Vector2Int.Left, 'R' => Vector2Int.Right, _ => Vector2Int.Zero };
+        int moveCount = int.Parse(line[2..]);
+        for (int move = 0; move < moveCount; move++)
         {
             rope[0] += direction;
             knotHistories[0].Add(rope[0]);
             for (int knot = 1; knot < rope.Length; knot++)
             {
                 Vector2Int difference = rope[knot - 1] - rope[knot];
-                if (difference.Abs().Max() >= 2)
+                Vector2Int absoluteDifference = difference.Abs();
+                if (absoluteDifference.X > 1 || absoluteDifference.Y > 1)
                 {
                     rope[knot] += difference.Sign();
                 }
@@ -222,29 +314,41 @@ static void Day10(string[] lines)
 
 static void Day11(string[] lines)
 {
-    static long MonkeyBusinessLevel() => Monkey.Troop.Select(m => m.TimesInspectedItems).OrderDescending().Take(2).Product();
+    static long Product(IEnumerable<int> ints)
+    {
+        long product = 1;
+        foreach (int i in ints)
+        {
+            product *= i;
+        }
+
+        return product;
+    }
+
+    static long CalculateMonkeyBusinessLevel() => Product(Monkey.Troop.Select(m => m.TimesInspectedItems).OrderDescending().Take(2));
 
     Monkey.Troop.AddRange(lines.Chunk(7).Select(chunk => new Monkey(chunk)));
     for (int t = 0; t < 20; t++)
         Monkey.Troop.ForEach(m => m.TakeTurn(w => w / 3));
-    Console.WriteLine("Level of monkey business (Part 1): " + MonkeyBusinessLevel());
+    Console.WriteLine("Level of monkey business (Part 1): " + CalculateMonkeyBusinessLevel());
 
-    long product = Monkey.Troop.Select(m => m.ModuloDivisor).Product();
-    Monkey.Troop.ForEach(m => m.Reset());
+    long productOfModuloDivisors = Product(Monkey.Troop.Select(m => m.ModuloDivisor));
+    Monkey.Troop.ForEach(m => m.RevertToInitialCollection());
     for (int t = 0; t < 10000; t++)
-        Monkey.Troop.ForEach(m => m.TakeTurn(w => w % product));
-    Console.WriteLine("Level of monkey business (Part 2): " + MonkeyBusinessLevel());
+        Monkey.Troop.ForEach(m => m.TakeTurn(w => w % productOfModuloDivisors));
+    Console.WriteLine("Level of monkey business (Part 2): " + CalculateMonkeyBusinessLevel());
 }
 
 static void Day12(string[] lines)
 {
-    int minStepCount(int[,] heightMap, Vector2Int start, Vector2Int end)
+    int MinimumStepCountFromStartToEnd(int[,] heightMap, Vector2Int start, Vector2Int end)
     {
         HashSet<Vector2Int> open = new() { start };
         HashSet<Vector2Int> closed = new();
         Dictionary<Vector2Int, int> gCost = new() { { start, 0 } };
         int hCost(Vector2Int v) => Vector2Int.ManhattanDistance(v, end);
         int fCost(Vector2Int v) => gCost[v] + hCost(v);
+        Vector2Int bounds = new(heightMap.GetLength(1), heightMap.GetLength(0));
 
         while (true)
         {
@@ -259,7 +363,7 @@ static void Day12(string[] lines)
             foreach (Vector2Int direction in Vector2Int.Directions)
             {
                 Vector2Int neighbor = current + direction;
-                if (neighbor.InBounds(heightMap) && heightMap[neighbor.Y, neighbor.X] <= currentHeight + 1 && !closed.Contains(neighbor))
+                if (neighbor >= Vector2Int.Zero && neighbor < bounds && heightMap[neighbor.Y, neighbor.X] <= currentHeight + 1 && !closed.Contains(neighbor))
                 {
                     bool neighborHasExistingPath = gCost.TryGetValue(neighbor, out int neighborPath);
                     if (!open.Contains(neighbor) || (neighborHasExistingPath && gCost[current] + 1 < neighborPath))
@@ -272,11 +376,12 @@ static void Day12(string[] lines)
         }
     }
 
-    int minStepCountFromHeight(int[,] heightMap, int startHeight, Vector2Int end)
+    int MinimumStepCountFromHeightToEnd(int[,] heightMap, int startHeight, Vector2Int end)
     {
         HashSet<Vector2Int> open = new() { end };
         HashSet<Vector2Int> closed = new();
         Dictionary<Vector2Int, int> gCost = new() { { end, 0 } };
+        Vector2Int bounds = new(heightMap.GetLength(1), heightMap.GetLength(0));
 
         while (true)
         {
@@ -291,7 +396,7 @@ static void Day12(string[] lines)
             foreach (Vector2Int direction in Vector2Int.Directions)
             {
                 Vector2Int neighbor = current + direction;
-                if (neighbor.InBounds(heightMap) && heightMap[neighbor.Y, neighbor.X] >= currentHeight - 1 && !closed.Contains(neighbor))
+                if (neighbor >= Vector2Int.Zero && neighbor < bounds && heightMap[neighbor.Y, neighbor.X] >= currentHeight - 1 && !closed.Contains(neighbor))
                 {
                     bool neighborHasExistingPath = gCost.TryGetValue(neighbor, out int neighborPath);
                     if (!open.Contains(neighbor) || (neighborHasExistingPath && gCost[current] + 1 < neighborPath))
@@ -304,13 +409,15 @@ static void Day12(string[] lines)
         }
     }
 
-    int[,] heightMap = lines.ToGrid(c => c switch { 'S' => 1, 'E' => 26, _ => c - 'a' + 1 });
-    (int startLine, int startChar) = lines.LineCharIndexOf('S');
-    (int endLine, int endChar) = lines.LineCharIndexOf('E');
-    Vector2Int start = new(startChar, startLine);
-    Vector2Int end = new(endChar, endLine);
-    Console.WriteLine("Step count (Part 1): " + minStepCount(heightMap, start, end));
-    Console.WriteLine("Step count (Part 2): " + minStepCountFromHeight(heightMap, 1, end));
+    int[,] heightMap = ToGrid(lines, c => c switch { 'S' => 1, 'E' => 26, _ => c - 'a' + 1 });
+    int row = Enumerable.Range(0, lines.Length).First(i => lines[i].Contains('S'));
+    int column = lines[row].IndexOf('S');
+    Vector2Int start = new(column, row);
+    row = Enumerable.Range(0, lines.Length).First(i => lines[i].Contains('E'));
+    column = lines[row].IndexOf('E');
+    Vector2Int end = new(column, row);
+    Console.WriteLine("Step count (Part 1): " + MinimumStepCountFromStartToEnd(heightMap, start, end));
+    Console.WriteLine("Step count (Part 2): " + MinimumStepCountFromHeightToEnd(heightMap, 1, end));
 }
 
 static void Day13(string[] lines)
@@ -457,9 +564,10 @@ static void Day15(string[] lines)
         distances[line] = Vector2Int.ManhattanDistance(sensorLocations[line], beaconLocations[line]);
     }
 
-    RangeList rangeListForRow(int row)
+    RangeList sensedRangeList = new();
+    void updateRangeList(int row)
     {
-        RangeList sensedRangeList = new();
+        sensedRangeList.Clear();
         for (int i = 0; i < sensorLocations.Length; i++)
         {
             int rowDistance = Math.Abs(row - sensorLocations[i].Y);
@@ -469,17 +577,16 @@ static void Day15(string[] lines)
                 sensedRangeList.Add(new Range(sensorLocations[i].X - possibleColumnDistance, sensorLocations[i].X + possibleColumnDistance));
             }
         }
-        return sensedRangeList;
     }
         
     bool useSmallSearchSpace = sensorLocations.All(s => s.X <= 20 && s.Y <= 20);
     int targetRow = useSmallSearchSpace ? 10 : 2000000;
-    RangeList sensedRangeList = rangeListForRow(targetRow);
+    updateRangeList(targetRow);
     int positionCount = sensedRangeList.Count - beaconLocations.Distinct().Count(b => b.Y == targetRow && sensedRangeList.Contains(b.X));
     Console.WriteLine($"Count of positions in row {targetRow} known not to have a beacon: {positionCount}");
     for (int row = useSmallSearchSpace ? 20 : 4000000; row >= 0; row--)
     {
-        sensedRangeList = rangeListForRow(row);
+        updateRangeList(row);
         if (sensedRangeList.PieceCount > 1)
         {
             int column = sensedRangeList.Piece(0).End + 1;
@@ -501,10 +608,25 @@ static void Day17(string[] lines)
 
 static void Day18(string[] lines)
 {
+    Vector3Int[] cubes =  lines.Select(s => new Vector3Int(s)).ToArray();
+    int surfaceArea = 6 * cubes.Length;
+    for (int i = 0; i < cubes.Length - 1; i++)
+    {
+        for (int j = i + 1; j < cubes.Length; j++)
+        {
+            if (Vector3Int.AreAdjacent(cubes[i], cubes[j]))
+            {
+                surfaceArea -= 2;
+            }
+        }
+    }
+
+    Console.WriteLine($"Surface area: {surfaceArea}");
 }
 
 static void Day19(string[] lines)
 {
+    Dictionary<string, List<string>> tunnels = new();
 }
 
 static void Day20(string[] lines)
@@ -538,4 +660,7 @@ partial class Program
 
     [GeneratedRegex(@"\[|\]|-?\d+")]
     private static partial Regex BracketOrIntegerRegex();
+
+    [GeneratedRegex(@"\[A-Z]{2}")]
+    private static partial Regex TwoCapitals();
 }

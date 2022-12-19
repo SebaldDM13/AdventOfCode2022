@@ -44,5 +44,4 @@ public class FileSystem
             yield return current;
         }
     }
-
 }

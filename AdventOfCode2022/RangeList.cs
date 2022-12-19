@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace AdventOfCode2022;
+﻿namespace AdventOfCode2022;
 
 public class RangeList
 {

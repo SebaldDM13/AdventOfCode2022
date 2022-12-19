@@ -49,10 +49,10 @@ public class Monkey
             }
         }
 
-        Reset();
+        RevertToInitialCollection();
     }
 
-    public void Reset()
+    public void RevertToInitialCollection()
     {
         heldItems.Clear();
         heldItems.EnqueueRange(startingHeldItems);
