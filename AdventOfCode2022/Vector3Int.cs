@@ -31,9 +31,9 @@ public struct Vector3Int : IEquatable<Vector3Int>
     public Vector3Int Sign() => new(Math.Sign(X), Math.Sign(Y), Math.Sign(Z));
     public Vector3Int Abs() => new(Math.Abs(X), Math.Abs(Y), Math.Abs(Z));
     public static int ManhattanDistance(Vector3Int a, Vector3Int b) => Math.Abs(b.X - a.X) + Math.Abs(b.Y - a.Y) + Math.Abs(b.Z - a.Z);
-    public static bool AreAdjacent(Vector3Int a, Vector3Int b) => ManhattanDistance(a, b) == 1;
     public static Vector3Int operator +(Vector3Int a, Vector3Int b) => new(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
     public static Vector3Int operator -(Vector3Int a, Vector3Int b) => new(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+    public static Vector2Int operator -(Vector3Int a) => new(-a.X, -a.Y);
     public static bool operator <(Vector3Int lhs, Vector3Int rhs) => lhs.X < rhs.X && lhs.Y < rhs.Y && lhs.Z < rhs.Z;
     public static bool operator >(Vector3Int lhs, Vector3Int rhs) => lhs.X > rhs.Y && lhs.Y > rhs.Y && lhs.Z > rhs.Z;
     public static bool operator <=(Vector3Int lhs, Vector3Int rhs) => lhs.X <= rhs.X && lhs.Y <= rhs.Y && lhs.Z <= rhs.Z;

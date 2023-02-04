@@ -27,10 +27,15 @@ public struct Vector2Int : IEquatable<Vector2Int>
 
     public Vector2Int Sign() => new(Math.Sign(X), Math.Sign(Y));
     public Vector2Int Abs() => new(Math.Abs(X), Math.Abs(Y));
+    public void TurnRight() => (X, Y) = (Y, -X);
+    public void TurnLeft() => (X, Y) = (-Y, X);
+    public char ToChar() => (X, Y) switch { (0, 1) => '^', (0, -1) => 'v', (-1, 0) => '<', (1, 0) => '>', _ => '.' };
+    public int Area() => X * Y;
+    public Vector2Int WithInvertedY() => new(X, -Y);
     public static int ManhattanDistance(Vector2Int a, Vector2Int b) => Math.Abs(b.X - a.X) + Math.Abs(b.Y - a.Y);
-    public static bool AreAdjacent(Vector2Int a, Vector2Int b) => ManhattanDistance(a, b) == 1;
     public static Vector2Int operator +(Vector2Int a, Vector2Int b) => new(a.X + b.X, a.Y + b.Y);
     public static Vector2Int operator -(Vector2Int a, Vector2Int b) => new(a.X - b.X, a.Y - b.Y);
+    public static Vector2Int operator -(Vector2Int a) => new(-a.X, -a.Y);
     public static bool operator <(Vector2Int lhs, Vector2Int rhs) => lhs.X < rhs.X && lhs.Y < rhs.Y;
     public static bool operator >(Vector2Int lhs, Vector2Int rhs) => lhs.X > rhs.X && lhs.Y > rhs.Y;
     public static bool operator <=(Vector2Int lhs, Vector2Int rhs) => lhs.X <= rhs.X && lhs.X <= rhs.Y;
